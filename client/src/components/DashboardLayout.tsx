@@ -47,18 +47,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleNavigation = (href: string) => {
     navigate(href);
-    setMobileMenuOpen(false);
+    setMobileMenuOpen(false);a
   };
 
   return (
     <div className="flex h-screen bg-background">
       {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 text-white transition-transform duration-300 lg:relative lg:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+    <aside
+  className={cn(
+    "fixed inset-y-0 left-0 z-50 w-64 bg-purple-500 text-white transition-transform duration-300 lg:relative lg:translate-x-0",
+    sidebarOpen ? "translate-x-0" : "-translate-x-full"
+  )}
+>
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between p-6 border-b border-slate-700">
