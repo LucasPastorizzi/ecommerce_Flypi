@@ -5,6 +5,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+     "predeploy": "npm run build && copy dist\\index.html dist\\404.html",
+  "deploy": "gh-pages -d dist",
   "dev": "vite --host",
   "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
   "start": "NODE_ENV=production node dist/index.js",
