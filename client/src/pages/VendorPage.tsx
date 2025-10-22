@@ -10,6 +10,8 @@ import {
   Filter,
   Camera,
   Pencil,
+  ShoppingBag,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,16 +25,16 @@ interface Product {
   id: number;
   name: string;
   price: number;
-  promotionalPrice?: number; // Adicionado
-  image: string; // Pode ser uma classe de cor ou uma URL de imagem (blob: ou http )
+  promotionalPrice?: number;
+  image: string;
   category: string;
   stock: number;
-  tag?: string; // Adicionado
-  description?: string; // Adicionado
-  productCode?: string; // Adicionado
-  cost?: number; // Adicionado
-  unit?: string; // Adicionado
-  minStock?: number; // Adicionado
+  tag?: string;
+  description?: string;
+  productCode?: string;
+  cost?: number;
+  unit?: string;
+  minStock?: number;
 }
 
 interface CartItem extends Product {
@@ -125,17 +127,25 @@ export default function VendorPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [products, setProducts] = useState<Product[]>(initialMockProducts);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const savedProducts = localStorage.getItem("products");
+    return savedProducts ? JSON.parse(savedProducts) : initialMockProducts;
+  });
   
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [isCartSidebarOpen, setIsCartSidebarOpen] = useState(true); // Estado para responsividade do carrinho
+
+  useEffect(() => {
+    localStorage.setItem("products", JSON.stringify(products));
+  }, [products]);
 
   const categories = ["Eletrônicos", "Acessórios", "Premium", "Sustentável", "Profissional"];
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || product.category === product.category; // Filtro de categoria restaurado
+    const matchesCategory = !selectedCategory || product.category === selectedCategory; // Lógica de filtro corrigida
     return matchesSearch && matchesCategory;
   });
 
@@ -393,19 +403,27 @@ export default function VendorPage() {
       </div>
 
       {/* Shopping Cart Sidebar */}
-      <div className="w-80 bg-white border-l border-gray-200 flex flex-col overflow-hidden">
+      <div className={cn(
+        "w-80 bg-white border-l border-gray-200 flex-shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out",
+        isCartSidebarOpen ? "flex" : "hidden",
+        "md:flex" // Sempre visível em telas maiores que 'md'
+      )}>
         {/* Cart Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="flex items-center">
             <h2 className="text-lg font-bold text-gray-900">Seu carrinho</h2>
-            <span className="bg-teal-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            <span className="bg-teal-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center ml-2">
               {cartItems}
             </span>
           </div>
-          {cartItems === 0 && (
-            <p className="text-sm text-gray-500">Clique nos produtos para adicionar à venda.</p>
-          )}
+          <Button variant="ghost" size="icon" onClick={() => setIsCartSidebarOpen(false)} className="md:hidden"> {/* Botão de fechar visível apenas em telas menores */}
+            <X className="h-4 w-4" />
+          </Button>
         </div>
+
+        {cartItems === 0 && (
+          <p className="text-sm text-gray-500 p-6">Clique nos produtos para adicionar à venda.</p>
+        )}
 
         {/* Cart Items */}
         <div className="flex-1 overflow-auto p-6 space-y-4">
@@ -475,6 +493,14 @@ export default function VendorPage() {
           </div>
         )}
       </div>
+      {/* Botão para abrir o carrinho em telas menores */}
+      {!isCartSidebarOpen && (
+        <div className="absolute bottom-4 right-4 md:hidden">
+          <Button size="icon" className="h-12 w-12 rounded-full bg-teal-500 hover:bg-teal-600 text-white shadow-lg" onClick={() => setIsCartSidebarOpen(true)}>
+            <ShoppingBag className="h-6 w-6" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -557,7 +583,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ categories, onSave, productTo
       name: formData.name,
       price: parseFloat(formData.price),
       promotionalPrice: formData.promotionalPrice ? parseFloat(formData.promotionalPrice) : undefined,
-      image: imagePreview || (productToEdit?.image || 'bg-gray-500'), // Usa a nova imagem, a antiga, ou um placeholder
+      image: imagePreview || (productToEdit?.image || 'bg-gray-500'),
       category: formData.category,
       stock: parseInt(formData.currentStock),
       tag: formData.tag || undefined,
