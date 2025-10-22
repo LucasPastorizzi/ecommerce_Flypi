@@ -1,6 +1,7 @@
 {
   "name": "ecommerce_dashboard",
   "version": "1.0.0",
+  "homepage": "https://lucaspastorizzi.github.io/ecommerce_Flypi",
   "type": "module",
   "license": "MIT",
   "scripts": {
