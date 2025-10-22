@@ -11,7 +11,7 @@ const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(
 export default defineConfig({
   base: '/ecommerce_Flypi/', // <-- coloque o nome EXATO do seu repositório aqui
   plugins,
-  resolve: {
+  resolve: {  
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
