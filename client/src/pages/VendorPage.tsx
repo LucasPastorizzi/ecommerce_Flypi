@@ -9,10 +9,16 @@ import {
   Minus,
   Trash2,
   Filter,
+  Camera,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Product {
   id: number;
@@ -27,7 +33,7 @@ interface CartItem extends Product {
   quantity: number;
 }
 
-const mockProducts: Product[] = [
+const initialMockProducts: Product[] = [
   {
     id: 1,
     name: "Produto Premium",
@@ -83,10 +89,12 @@ export default function VendorPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>(initialMockProducts);
+  const [isAddProductFormOpen, setIsAddProductFormOpen] = useState(false);
 
   const categories = ["Eletrônicos", "Acessórios", "Premium", "Sustentável", "Profissional"];
 
-  const filteredProducts = mockProducts.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -122,6 +130,12 @@ export default function VendorPage() {
     }
   };
 
+  const handleAddProduct = (newProduct: Omit<Product, 'id'>) => {
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+    setProducts((prevProducts) => [...prevProducts, { ...newProduct, id: newId }]);
+    setIsAddProductFormOpen(false);
+  };
+
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const cartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -143,6 +157,20 @@ export default function VendorPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <Dialog open={isAddProductFormOpen} onOpenChange={setIsAddProductFormOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="default" className="gap-2 bg-purple-600 hover:bg-purple-700 text-white">
+                    <Plus className="w-4 h-4" />
+                    Adicionar Produto
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[800px] p-6 bg-neutral-800 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold">Cadastrar Produto</DialogTitle>
+                  </DialogHeader>
+                  <AddProductForm categories={categories} onAddProduct={handleAddProduct} />
+                </DialogContent>
+              </Dialog>
               <Button variant="outline" className="gap-2">
                 <Filter className="w-4 h-4" />
                 Categorias
@@ -157,7 +185,7 @@ export default function VendorPage() {
                   className={cn(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                     !selectedCategory
-                      ? "bg-teal-500 text-white"
+                      ? "bg-slate-700 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   )}
                 >
@@ -170,7 +198,7 @@ export default function VendorPage() {
                     className={cn(
                       "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                       selectedCategory === category
-                        ? "bg-teal-500 text-white"
+                        ? "bg-slate-700 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     )}
                   >
@@ -305,40 +333,41 @@ export default function VendorPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h4 className="font-semibold text-gray-900 text-sm">{item.name}</h4>
-                    <p className="text-xs text-gray-500">R$ {item.price.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">{item.category}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900">R$ {(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-xs text-gray-500">R$ {item.price.toFixed(2)} / un.</p>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="font-medium text-gray-900">{item.quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-gray-400 hover:text-red-500"
+                    className="text-red-500 hover:bg-red-50 hover:text-red-600"
                     onClick={() => removeFromCart(item.id)}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 bg-white rounded border border-gray-200">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    >
-                      <Minus className="w-3 h-3" />
-                    </Button>
-                    <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <p className="font-bold text-gray-900">
-                    R$ {(item.price * item.quantity).toFixed(2)}
-                  </p>
                 </div>
               </div>
             ))
@@ -347,24 +376,13 @@ export default function VendorPage() {
 
         {/* Cart Footer */}
         {cart.length > 0 && (
-          <div className="border-t border-gray-200 p-6 space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Subtotal</span>
-                <span>R$ {cartTotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Frete</span>
-                <span>R$ 0,00</span>
-              </div>
-              <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-gray-900">
-                <span>Total</span>
-                <span>R$ {cartTotal.toFixed(2)}</span>
-              </div>
+          <div className="p-6 border-t border-gray-200 bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-lg font-bold text-gray-900">Total</span>
+              <span className="text-xl font-bold text-gray-900">R$ {cartTotal.toFixed(2)}</span>
             </div>
-            <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white h-10">
-              <Zap className="w-4 h-4 mr-2" />
-              Ir para pagamento
+            <Button className="w-full bg-teal-500 hover:bg-teal-600 text-white text-lg py-3">
+              Finalizar Venda
             </Button>
           </div>
         )}
@@ -373,3 +391,129 @@ export default function VendorPage() {
   );
 }
 
+interface AddProductFormProps {
+  categories: string[];
+  onAddProduct: (product: Omit<Product, 'id'>) => void;
+}
+
+const AddProductForm: React.FC<AddProductFormProps> = ({ categories, onAddProduct }) => {
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [promotionalPrice, setPromotionalPrice] = useState('');
+  const [category, setCategory] = useState(categories[0] || '');
+  const [tag, setTag] = useState('');
+  const [description, setDescription] = useState('');
+  const [productCode, setProductCode] = useState('');
+  const [cost, setCost] = useState('');
+  const [unit, setUnit] = useState('Unidade');
+  const [currentStock, setCurrentStock] = useState('');
+  const [minStock, setMinStock] = useState('');
+  const [image, setImage] = useState('bg-gray-200'); // Placeholder for image
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onAddProduct({
+      name,
+      price: parseFloat(price),
+      image,
+      category,
+      stock: parseInt(currentStock),
+    });
+    // Reset form fields
+    setName('');
+    setPrice('');
+    setPromotionalPrice('');
+    setCategory(categories[0] || '');
+    setTag('');
+    setDescription('');
+    setProductCode('');
+    setCost('');
+    setUnit('Unidade');
+    setCurrentStock('');
+    setMinStock('');
+    setImage('bg-gray-200');
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg h-48">
+          <Camera className="w-12 h-12 text-gray-400 mb-2" />
+          <Label htmlFor="product-image" className="text-blue-600 cursor-pointer">Selecionar uma foto</Label>
+          <Input id="product-image" type="file" className="hidden" onChange={(e) => { /* Handle file upload */ }} />
+        </div>
+
+        <div>
+          <Label htmlFor="name">Nome do Produto</Label>
+          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+        <div>
+          <Label htmlFor="price">Preço de Venda</Label>
+          <Input id="price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required />
+        </div>
+        <div>
+          <Label htmlFor="promotional-price">Preço promocional</Label>
+          <Input id="promotional-price" type="number" value={promotionalPrice} onChange={(e) => setPromotionalPrice(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="category">Categoria</Label>
+          <Select onValueChange={setCategory} value={category}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione uma categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="tag">Nome da etiqueta</Label>
+          <Input id="tag" value={tag} onChange={(e) => setTag(e.target.value)} />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="description">Descrição</Label>
+          <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+        </div>
+        <div>
+          <Label htmlFor="product-code">Código do produto</Label>
+          <Input id="product-code" value={productCode} onChange={(e) => setProductCode(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="cost">Custo</Label>
+          <Input id="cost" type="number" value={cost} onChange={(e) => setCost(e.target.value)} />
+        </div>
+        <div>
+          <Label htmlFor="unit">Vender por</Label>
+          <Select onValueChange={setUnit} value={unit}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione a unidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Unidade">Unidade</SelectItem>
+              <SelectItem value="Kg">Kg</SelectItem>
+              <SelectItem value="Litro">Litro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="current-stock">Estoque atual</Label>
+            <Input id="current-stock" type="number" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} required />
+          </div>
+          <div>
+            <Label htmlFor="min-stock">Estoque mínimo</Label>
+            <Input id="min-stock" type="number" value={minStock} onChange={(e) => setMinStock(e.target.value)} />
+          </div>
+        </div>
+        <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+          Salvar Produto
+        </Button>
+      </div>
+    </form>
+  );
+};

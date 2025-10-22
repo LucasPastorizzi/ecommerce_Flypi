@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleNavigation = (href: string) => {
     navigate(href);
-    setMobileMenuOpen(false);a
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="w-8 h-8 bg-teal-500 rounded flex items-center justify-center font-bold">
                 T
               </div>
-              <span className="font-semibold text-sm">TESTE</span>
+              <span className="font-semibold text-sm">Flypi</span>
             </div>
             <Button
               variant="ghost"
