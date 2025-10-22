@@ -405,9 +405,16 @@ export default function VendorPage() {
       {/* Shopping Cart Sidebar */}
       <div className={cn(
         "w-80 bg-white border-l border-gray-200 flex-shrink-0 flex-col overflow-hidden transition-all duration-300 ease-in-out",
-        isCartSidebarOpen ? "flex" : "hidden",
-        "md:flex" // Sempre visível em telas maiores que 'md'
+        isCartSidebarOpen ? "flex" : "hidden"
       )}>
+        {/* Botão para abrir o carrinho em telas menores */}
+        {!isCartSidebarOpen && (
+          <div className="absolute bottom-4 right-4 md:hidden">
+            <Button size="icon" className="h-12 w-12 rounded-full bg-teal-500 hover:bg-teal-600 text-white shadow-lg" onClick={() => setIsCartSidebarOpen(true)}>
+              <ShoppingBag className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
         {/* Cart Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center">
@@ -416,7 +423,7 @@ export default function VendorPage() {
               {cartItems}
             </span>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsCartSidebarOpen(false)} className="md:hidden"> {/* Botão de fechar visível apenas em telas menores */}
+          <Button variant="ghost" size="icon" onClick={() => setIsCartSidebarOpen(false)}> {/* Botão de fechar visível em todas as telas */}
             <X className="h-4 w-4" />
           </Button>
         </div>
